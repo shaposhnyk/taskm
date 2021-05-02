@@ -32,6 +32,18 @@ public class EvictingByPriorityCapacityManagerTest {
     assertThat(mgr.reserveCapacityOrSelectForTermination(pid(5), Priority.HIGH)).isEqualTo(pid(3));
   }
 
+  @Test
+  public void testEvictingOverCapacity_nothing_to_evict() {
+    EvictingByPriorityCapacityManager mgr = new EvictingByPriorityCapacityManager(2);
+
+    mgr.reserveCapacityOrSelectForTermination(pid(1), Priority.LOW);
+    mgr.reserveCapacityOrSelectForTermination(pid(2), Priority.LOW);
+
+    assertThat(mgr.reserveCapacityOrSelectForTermination(pid(3), Priority.STD)).isEqualTo(pid(1));
+    mgr.freeCapacity(pid(1));
+    assertThat(mgr.reserveCapacityOrSelectForTermination(pid(4), Priority.LOW)).isEqualTo(pid(2));
+  }
+
   private ProcessId pid(int i) {
     return new TaskManagerImpl.PID(Integer.toString(i));
   }

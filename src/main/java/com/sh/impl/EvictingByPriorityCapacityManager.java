@@ -41,7 +41,11 @@ public class EvictingByPriorityCapacityManager implements CapacityManager {
       if (p.ordinal() < priority.ordinal() && !reservedIds.get(p).isEmpty()) {
         var pidToTerminate = reservedIds.get(p).iterator().next();
         var priorityToTeminate = priorityMap.remove(pidToTerminate);
-        reservedIds.get(priorityToTeminate).remove(pidToTerminate);
+        reservedIds.get(p).remove(pidToTerminate);
+
+        reservedIds.get(priority).add(pid);
+        priorityMap.put(pid, priority);
+
         return pidToTerminate;
       }
     }
