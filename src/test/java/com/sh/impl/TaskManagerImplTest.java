@@ -7,8 +7,7 @@ import org.junit.Test;
 
 import java.util.List;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.*;
 
 public class TaskManagerImplTest {
   @Test
@@ -141,6 +140,20 @@ public class TaskManagerImplTest {
     ProcessId p4 = mgr.add("shutdown -now", Priority.LOW);
     assertThat(mgr.list(OrderByField.ID))
         .extracting(Process::pid).containsExactly(p3, p4);
+  }
+
+  @Test
+  public void testEvictingOverCapacity_nothing_to_evict() {
+    TaskManager mgr = new TaskManagerImpl(new EvictingByPriorityCapacityManager(2));
+    ProcessId p1 = mgr.add("ls", Priority.LOW);
+    ProcessId p2 = mgr.add("rm -rf", Priority.LOW);
+    assertThat(mgr.list(OrderByField.ID))
+        .extracting(Process::pid).containsExactly(p1, p2);
+    ProcessId p3 = mgr.add("shutdown", Priority.STD);
+    List<Process> list = mgr.list(OrderByField.ID);
+    assertThat(list)
+        .extracting(Process::pid).containsExactly(p2, p3);
+    assertThatThrownBy(() -> mgr.add("shutdown -now", Priority.LOW));
   }
 
   public static TaskManager defaultMgr(int capacity) {
